@@ -1,6 +1,6 @@
 # PDF Invoice Extractor
 
-This project is a Go HTTP server that hosts an HTMX-based frontend for uploading PDF files and extracting invoice data using the Mindee API with the altafino/mindee-client package.
+This project is a Go HTTP server that hosts an HTMX-based frontend for uploading PDF files and extracting invoice data using the Mindee API with the github.com/altafino/mindee-client package.
 
 ## Features
 
