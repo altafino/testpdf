@@ -39,17 +39,27 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	// Helper function to render error
+	renderError := func(message string) {
+		tmpl, err := template.ParseFiles("templates/error.html")
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(w, struct{ ErrorMessage string }{ErrorMessage: message})
+	}
+
 	// Parse the multipart form
 	err := r.ParseMultipartForm(10 << 20) // 10 MB max
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		renderError("Failed to parse form. Please try again.")
 		return
 	}
 
 	// Get the original filename
 	file, header, err := r.FormFile("pdf")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		renderError("Failed to get the uploaded file. Please try again.")
 		return
 	}
 	defer file.Close()
@@ -62,7 +72,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Create a temporary file to store the uploaded PDF
 	tempFile, err := os.CreateTemp("", "upload-*.pdf")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError("Failed to process the uploaded file. Please try again.")
 		return
 	}
 	defer os.Remove(tempFile.Name())
@@ -71,28 +81,28 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Copy the uploaded file to the temporary file
 	_, err = io.Copy(tempFile, file)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError("Failed to process the uploaded file. Please try again.")
 		return
 	}
 
 	// Get API key from environment variable
 	apiKey := os.Getenv("MINDEE_API_KEY")
 	if apiKey == "" {
-		http.Error(w, "MINDEE_API_KEY not set in environment", http.StatusInternalServerError)
+		renderError("Server configuration error. Please contact the administrator.")
 		return
 	}
 
 	// Extract data using Mindee API
 	invoiceData, err := mindee.GetInvoiceDataForFilePath(tempFile.Name(), apiKey)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError("Failed to extract data from the PDF. Please make sure it's a valid invoice and try again.")
 		return
 	}
 
 	// Marshal the entire invoiceData to JSON
 	jsonData, err := json.MarshalIndent(invoiceData, "", "  ")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError("Failed to process the extracted data. Please try again.")
 		return
 	}
 
@@ -110,11 +120,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Render the result template
 	tmpl, err := template.ParseFiles("templates/result.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError("Failed to display the results. Please try again.")
 		return
 	}
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		log.Printf("Template execution error: %v", err)
+		renderError("Failed to display the results. Please try again.")
 	}
 }
