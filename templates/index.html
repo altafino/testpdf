@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            100: '#1E2028',
+                            200: '#23252F',
+                            300: '#2A2D39',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom styles for file input */
+        .file-input::file-selector-button {
+            background-color: #4B5563;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .file-input::file-selector-button:hover {
+            background-color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-dark-100 text-gray-200 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-dark-200 p-8 rounded-lg shadow-xl w-4/5 max-w-4xl">
+        <h1 class="text-3xl font-bold mb-6 text-blue-400">PDF Invoice Extractor</h1>
+        <form hx-post="/upload" hx-encoding="multipart/form-data" hx-target="#result" hx-disabled-elt="#submit-btn">
+            <div class="mb-6">
+                <label for="pdf" class="block text-sm font-medium text-gray-300 mb-2">Upload PDF</label>
+                <input type="file" id="pdf" name="pdf" accept=".pdf" class="file-input block w-full text-sm text-gray-400
+                    bg-dark-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button id="submit-btn" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                Extract Data
+            </button>
+        </form>
+        <div id="result" class="mt-6 bg-dark-300 p-4 rounded-md"></div>
+    </div>
+</body>
+</html>

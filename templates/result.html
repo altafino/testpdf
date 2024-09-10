@@ -1,0 +1,63 @@
+<div class="bg-dark-300 border-l-4 border-blue-500 text-gray-300 p-4 mb-4 rounded-r-md" role="alert">
+    <p class="font-bold text-blue-400">Success!</p>
+    <p class="text-gray-400">Data extracted from {{ .Filename }}</p>
+</div>
+
+<div class="space-y-4">
+    <h2 class="text-lg font-semibold text-blue-400">Extracted Data (JSON)</h2>
+    <pre id="json-viewer" class="bg-dark-300 p-4 rounded-md overflow-x-auto"></pre>
+</div>
+
+<script>
+    function syntaxHighlight(json) {
+        if (typeof json != 'string') {
+            json = JSON.stringify(json, undefined, 2);
+        }
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
+    function displayJSON() {
+        var jsonData = {{ .InvoiceData }};
+        console.log('JSON data:', jsonData);
+        
+        const viewer = document.getElementById('json-viewer');
+        viewer.innerHTML = syntaxHighlight(jsonData);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', displayJSON);
+    } else {
+        displayJSON();
+    }
+</script>
+
+<style>
+    #json-viewer {
+        background-color: #2A2D39;
+        color: #A5D6FF;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        border: 1px solid #3B3F4A;
+    }
+    .string { color: #A5D6FF; }
+    .number { color: #79C0FF; }
+    .boolean { color: #FF7B72; }
+    .null { color: #79C0FF; }
+    .key { color: #FF7B72; }
+</style>
