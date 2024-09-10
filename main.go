@@ -10,7 +10,16 @@ import (
 	"os"
 
 	mindee "github.com/altafino/mindee-client"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
 func main() {
 	http.HandleFunc("/", homeHandler)
@@ -66,8 +75,15 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get API key from environment variable
+	apiKey := os.Getenv("MINDEE_API_KEY")
+	if apiKey == "" {
+		http.Error(w, "MINDEE_API_KEY not set in environment", http.StatusInternalServerError)
+		return
+	}
+
 	// Extract data using Mindee API
-	invoiceData, err := mindee.GetInvoiceDataForFilePath(tempFile.Name(), "fdb05ca588337283292242f8bb6f8ecc")
+	invoiceData, err := mindee.GetInvoiceDataForFilePath(tempFile.Name(), apiKey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
